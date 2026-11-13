@@ -1,0 +1,13 @@
+teste: main.o caverna.o
+	gcc main.o caverna.o -o teste
+
+main.o: main.c Headers/caverna.h
+	gcc -Wall -IHeaders -c main.c -o main.o
+
+caverna.o: Codigos-fonte/caverna.c Headers/caverna.h
+	gcc -Wall -IHeaders -c Codigos-fonte/caverna.c -o caverna.o
+
+clean:
+	rm -f *.o teste
+
+all: teste
