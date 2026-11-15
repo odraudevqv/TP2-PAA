@@ -98,6 +98,31 @@ int calcularMelhorCaminho(Caverna *c, PD *pd){
     return 0;
 }
 
+void escreverCaminho(Caverna *c, PD *pd, int linha, int coluna, FILE *saida){
+    int hpBaixo = -1;
+    int hpDireita = -1;
+
+    if (linha == c -> inicioL && coluna == c -> inicioC){
+        fprintf(saida, "%d %d\n", linha, coluna);
+        return;
+    }
+
+    if (linha < c -> inicioL){
+        hpBaixo = pd -> tabela[linha + 1][coluna];
+    }
+    if (coluna < c -> inicioC){
+        hpDireita = pd -> tabela[linha][coluna + 1];
+    }
+
+    if (hpBaixo > hpDireita){
+        escreverCaminho(c, pd, linha + 1, coluna, saida);
+    }else{
+        escreverCaminho(c, pd, linha, coluna + 1, saida);
+    }
+
+    fprintf(saida, "%d %d\n", linha, coluna);
+}
+
 void liberarPD(PD *pd){
     int i;
     for (i = 0; i < pd -> linhas; i++){
