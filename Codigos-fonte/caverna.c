@@ -53,6 +53,8 @@ int lerCaverna(Caverna *c, char *nomeArquivo){
                 c -> fimL = i;
                 c -> fimC = j;
                 c -> matriz[i][j] = 0;
+            }else if (strcmp(token, "X") == 0 || strcmp(token, "x") == 0){
+                c -> matriz[i][j] = PAREDE;         //Parede: marca a celula com o valor especial PAREDE
             }else{
                 c -> matriz[i][j] = atoi(token);    //Converte string para inteiro. Ex: "-20" = -20
             }

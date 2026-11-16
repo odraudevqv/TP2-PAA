@@ -1,16 +1,27 @@
-teste: main.o caverna.o pd.o
-	gcc main.o caverna.o pd.o -o teste
+bin/caverna: obj/main.o obj/caverna.o obj/pd.o obj/gerador.o
+	mkdir -p bin
+	gcc obj/main.o obj/caverna.o obj/pd.o obj/gerador.o -o bin/caverna
 
-main.o: main.c Headers/caverna.h Headers/pd.h
-	gcc -Wall -IHeaders -c main.c -o main.o
+obj/main.o: main.c Headers/caverna.h Headers/pd.h Headers/gerador.h
+	mkdir -p obj
+	gcc -Wall -IHeaders -c main.c -o obj/main.o
 
-caverna.o: Codigos-fonte/caverna.c Headers/caverna.h
-	gcc -Wall -IHeaders -c Codigos-fonte/caverna.c -o caverna.o
+obj/caverna.o: Codigos-fonte/caverna.c Headers/caverna.h
+	mkdir -p obj
+	gcc -Wall -IHeaders -c Codigos-fonte/caverna.c -o obj/caverna.o
 
-pd.o: Codigos-fonte/pd.c Headers/pd.h Headers/caverna.h
-	gcc -Wall -IHeaders -c Codigos-fonte/pd.c -o pd.o
+obj/pd.o: Codigos-fonte/pd.c Headers/pd.h Headers/caverna.h
+	mkdir -p obj
+	gcc -Wall -IHeaders -c Codigos-fonte/pd.c -o obj/pd.o
+
+obj/gerador.o: Codigos-fonte/gerador.c Headers/gerador.h Headers/caverna.h
+	mkdir -p obj
+	gcc -Wall -IHeaders -c Codigos-fonte/gerador.c -o obj/gerador.o
+
+run: bin/caverna
+	./bin/caverna testes/caverna5.txt
 
 clean:
-	rm -f *.o teste
+	rm -f obj/*.o bin/caverna
 
-all: teste
+all: bin/caverna
