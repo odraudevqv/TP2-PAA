@@ -1,27 +1,27 @@
-bin/caverna: obj/main.o obj/caverna.o obj/pd.o obj/gerador.o
-	mkdir -p bin
-	gcc obj/main.o obj/caverna.o obj/pd.o obj/gerador.o -o bin/caverna
+# Funciona no Windows (mingw32-make) e no Linux (make)
+ifeq ($(OS),Windows_NT)
+    EXECUTAVEL = caverna.exe
+    RODAR = caverna.exe
+    CRIAR_MAPA = if not exist mapa mkdir mapa
+    LIMPAR = if exist caverna.exe del caverna.exe
+else
+    EXECUTAVEL = caverna
+    RODAR = ./caverna
+    CRIAR_MAPA = mkdir -p mapa
+    LIMPAR = rm -f caverna
+endif
 
-obj/main.o: main.c Headers/caverna.h Headers/pd.h Headers/gerador.h
-	mkdir -p obj
-	gcc -Wall -IHeaders -c main.c -o obj/main.o
+FONTES = main.c Codigos-fonte/caverna.c Codigos-fonte/pd.c Codigos-fonte/gerador.c
 
-obj/caverna.o: Codigos-fonte/caverna.c Headers/caverna.h
-	mkdir -p obj
-	gcc -Wall -IHeaders -c Codigos-fonte/caverna.c -o obj/caverna.o
+$(EXECUTAVEL): $(FONTES) Headers/caverna.h Headers/pd.h Headers/gerador.h
+	gcc -Wall -IHeaders $(FONTES) -o $(EXECUTAVEL)
 
-obj/pd.o: Codigos-fonte/pd.c Headers/pd.h Headers/caverna.h
-	mkdir -p obj
-	gcc -Wall -IHeaders -c Codigos-fonte/pd.c -o obj/pd.o
-
-obj/gerador.o: Codigos-fonte/gerador.c Headers/gerador.h Headers/caverna.h
-	mkdir -p obj
-	gcc -Wall -IHeaders -c Codigos-fonte/gerador.c -o obj/gerador.o
-
-run: bin/caverna
-	./bin/caverna testes/caverna5.txt
+# Compila e executa (o arquivo da caverna e digitado com o programa rodando)
+run: $(EXECUTAVEL)
+	@$(CRIAR_MAPA)
+	@$(RODAR)
 
 clean:
-	rm -f obj/*.o bin/caverna
+	$(LIMPAR)
 
-all: bin/caverna
+all: $(EXECUTAVEL)
