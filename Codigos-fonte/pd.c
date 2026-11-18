@@ -103,7 +103,7 @@ void escreverCaminho(Caverna *c, PD *pd, int linha, int coluna, FILE *saida){
     int hpDireita = -1;
 
     if (linha == c -> inicioL && coluna == c -> inicioC){
-        //fprintf(saida, "%d %d\n", linha, coluna);
+        fprintf(saida, "%d %d\n", linha, coluna);
         return;
     }
 
@@ -120,7 +120,7 @@ void escreverCaminho(Caverna *c, PD *pd, int linha, int coluna, FILE *saida){
         escreverCaminho(c, pd, linha, coluna + 1, saida);
     }
 
-    fprintf(saida, "%d %d\n", linha+1, coluna+1);
+    fprintf(saida, "%d %d\n", linha, coluna);
 }
 
 void liberarPD(PD *pd){
