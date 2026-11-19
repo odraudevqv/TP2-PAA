@@ -4,6 +4,8 @@
 #include "caverna.h"
 #include "pd.h"
 #include "gerador.h"
+#include "visual.h"
+
 
 // Tempo atual em milissegundos (relogio de alta resolucao)
 #ifdef _WIN32
@@ -108,6 +110,11 @@ double benchmark(){
         printf("%6dx%-4d %14d %16.4f\n", tamanhos[j], tamanhos[j], tamanhos[j] * tamanhos[j], tempos[j]);
     }
     printf("\nBenchmark concluido em %.4f ms\n", total);
+    if (remove("mapa/benchmark.txt") == 0) {
+        printf("Arquivo temporario removido com sucesso.\n");
+    }else{
+        printf("Nao foi possivel remover o arquivo temporario.\n");
+    }
     return total;
 }
 
@@ -136,81 +143,109 @@ int main(int argc, char *argv[]){
     }
 
     do{
-        printf("\n1 - Carregar caverna\n2 - Gerar caverna\n3 - Resolver\n4 - Benchmark (tempo x tamanho)\n0 - Sair\nOpcao: ");
+        printf("\n==================== MENU ====================\n");
+        printf("1 - Carregar caverna\n");
+        printf("2 - Gerar caverna\n");
+        printf("3 - Resolver\n");
+        printf("4 - Benchmark (tempo x tamanho)\n");
+        printf("5 - Imprimir caverna e caminho\n");
+        printf("0 - Sair\n");
+        printf("==============================================\n");
+        printf("Opcao: ");
         scanf("%d", &opcao);
 
-        if (opcao == 1){
-            pedirArquivo(caminho);
-            if (carregada){
-                liberarCaverna(&c);
-            }
-            t0 = agora();
-            carregada = lerCaverna(&c, caminho);
-            tLeitura = agora() - t0;
-            tTotal += tLeitura;
-            if (carregada){
-                printf("Caverna carregada (%.4f ms)\n", tLeitura);
-            }
+        switch (opcao){
+            case 1:
+                pedirArquivo(caminho);
+                if (carregada){
+                    liberarCaverna(&c);
+                }
+                t0 = agora();
+                carregada = lerCaverna(&c, caminho);
+                tLeitura = agora() - t0;
+                tTotal += tLeitura;
+                if (carregada){
+                    printf("Caverna carregada (%.4f ms)\n", tLeitura);
+                }
+                break;
 
-        }else if (opcao == 2){
-            printf("\n--- Gerar caverna aleatoria ---\n");
-            printf("As celulas sao sorteadas: vazias (0), monstros (-1 a -20) e pocoes (+1 a +20).\n");
-            printf("O inicio (I) e a saida (F) tambem sao sorteados.\n\n");
-            printf("Numero de linhas da caverna: ");
-            scanf("%d", &linhas);
-            printf("Numero de colunas da caverna: ");
-            scanf("%d", &colunas);
-            printf("Pontos de vida iniciais do estudante (ex: 50): ");
-            scanf("%d", &hp);
-            printf("Porcentagem de paredes, de 0 a 100 (0 = caverna sem paredes): ");
-            scanf("%d", &perc);
-            printf("Nome do arquivo a ser salvo na pasta mapa/ (ex: mapa1.txt): ");
-            scanf("%199s", nome);
+            case 2:
+                printf("\n--- Gerar caverna aleatoria ---\n");
+                printf("As celulas sao sorteadas: vazias (0), monstros (-1 a -20) e pocoes (+1 a +20).\n");
+                printf("O inicio (I) e a saida (F) tambem sao sorteados.\n\n");
+                printf("Numero de linhas da caverna: ");
+                scanf("%d", &linhas);
+                printf("Numero de colunas da caverna: ");
+                scanf("%d", &colunas);
+                printf("Pontos de vida iniciais do estudante (ex: 50): ");
+                scanf("%d", &hp);
+                printf("Porcentagem de paredes, de 0 a 100 (0 = caverna sem paredes): ");
+                scanf("%d", &perc);
+                printf("Nome do arquivo a ser salvo na pasta mapa/ (ex: mapa1.txt): ");
+                scanf("%199s", nome);
 
-            t0 = agora();
-            if (gerarMapa(linhas, colunas, hp, perc, nome, (unsigned int)time(NULL))){
+                t0 = agora();
+                if (gerarMapa(linhas, colunas, hp, perc, nome, (unsigned int)time(NULL))){
+                    t1 = agora();
+                    tTotal += t1 - t0;
+                    printf("Geracao: %.4f ms\n", t1 - t0);
+                    printf("Para usar essa caverna, escolha a opcao 1 e digite: %s\n", nome);
+                }
+                break;
+
+            case 3:
+                if (!carregada || c.inicioL < 0 || c.fimL < 0){
+                    printf("Carregue uma caverna valida primeiro (opcao 1).\n");
+                    continue;
+                }
+
+                t0 = agora();
+                inicializarPD(&pd, c.linhas, c.colunas);
+                encontrou = calcularMelhorCaminho(&c, &pd);
+
+                saida = fopen("resultado.txt", "w");
+                if (encontrou){
+                    escreverCaminho(&c, &pd, c.fimL, c.fimC, saida);
+                }else{
+                    fprintf(saida, "impossível\n");
+                }
+                fclose(saida);
                 t1 = agora();
-                tTotal += t1 - t0;
-                printf("Geracao: %.4f ms\n", t1 - t0);
-                printf("Para usar essa caverna, escolha a opcao 1 e digite: %s\n", nome);
-            }
+                tPD = t1 - t0;
+                tTotal += tPD;
 
-        }else if (opcao == 3){
-            if (!carregada || c.inicioL < 0 || c.fimL < 0){
-                printf("Carregue uma caverna valida primeiro (opcao 1).\n");
-                continue;
-            }
+                if (encontrou){
+                    printf("\nCaminho (de I ate F):\n");
+                    escreverCaminho(&c, &pd, c.fimL, c.fimC, stdout);
+                    printf("HP final: %d\n", pd.tabela[c.fimL][c.fimC]);
+                }else{
+                    printf("\nImpossivel escapar.\n");
+                }
+                printf("Resultado gravado em resultado.txt\n");
+                printf("Tempo leitura: %.4f ms | Tempo PD + gravacao: %.4f ms\n", tLeitura, tPD);
 
-            t0 = agora();
-            inicializarPD(&pd, c.linhas, c.colunas);
-            encontrou = calcularMelhorCaminho(&c, &pd);
+                liberarPD(&pd);
+                break;
 
-            saida = fopen("resultado.txt", "w");
-            if (encontrou){
-                escreverCaminho(&c, &pd, c.fimL, c.fimC, saida);
-            }else{
-                fprintf(saida, "impossível\n");
-            }
-            fclose(saida);
-            t1 = agora();
-            tPD = t1 - t0;
-            tTotal += tPD;
+            case 4:
+                tTotal += benchmark();
+                break;
 
-            if (encontrou){
-                printf("\nCaminho (de I ate F):\n");
-                escreverCaminho(&c, &pd, c.fimL, c.fimC, stdout);
-                printf("HP final: %d\n", pd.tabela[c.fimL][c.fimC]);
-            }else{
-                printf("\nImpossivel escapar.\n");
-            }
-            printf("Resultado gravado em resultado.txt\n");
-            printf("Tempo leitura: %.4f ms | Tempo PD + gravacao: %.4f ms\n", tLeitura, tPD);
+            case 5:
+                if (!carregada || c.inicioL < 0 || c.fimL < 0){
+                    printf("Carregue uma caverna valida primeiro (opcao 1).\n");
+                    continue;
+                }
 
-            liberarPD(&pd);
+                // So desenha no terminal: nao grava o resultado.txt (para isso, use a opcao 3)
+                inicializarPD(&pd, c.linhas, c.colunas);
+                encontrou = calcularMelhorCaminho(&c, &pd);
+                imprimirCaminhoCriativo(&c, &pd, encontrou);
+                liberarPD(&pd);
+                break;
 
-        }else if (opcao == 4){
-            tTotal += benchmark();
         }
+
     }while (opcao != 0);
 
     printf("\nTempo total de execucao medido: %.4f ms\n", tTotal);
@@ -220,3 +255,5 @@ int main(int argc, char *argv[]){
     }
     return 0;
 }
+
+       

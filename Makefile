@@ -11,9 +11,9 @@ else
     LIMPAR = rm -f caverna
 endif
 
-FONTES = main.c Codigos-fonte/caverna.c Codigos-fonte/pd.c Codigos-fonte/gerador.c
+FONTES = main.c Codigos-fonte/caverna.c Codigos-fonte/pd.c Codigos-fonte/gerador.c Codigos-fonte/visual.c
 
-$(EXECUTAVEL): $(FONTES) Headers/caverna.h Headers/pd.h Headers/gerador.h
+$(EXECUTAVEL): $(FONTES) Headers/caverna.h Headers/pd.h Headers/gerador.h Headers/visual.h
 	gcc -Wall -IHeaders $(FONTES) -o $(EXECUTAVEL)
 
 # Compila e executa (o arquivo da caverna e digitado com o programa rodando)
