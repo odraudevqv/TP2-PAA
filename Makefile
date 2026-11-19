@@ -1,27 +1,47 @@
-# Funciona no Windows (mingw32-make) e no Linux (make)
+#comandos recorrentemente executados
+EXEC = ./bin/tp
+CC = gcc
+HEADER = -I./Headers
+
+#variaveis com os nomes das pastas
+SRC = ./Codigos-fonte
+OBJ = obj
+BIN = bin
+TP = ./
+
+FONTES = $(wildcard $(SRC)/*.c)
+OBJETOS = $(patsubst $(SRC)/%.c,$(OBJ)/%.o,$(FONTES))
+
+#no Windows o executavel precisa de .exe
 ifeq ($(OS),Windows_NT)
-    EXECUTAVEL = caverna.exe
-    RODAR = caverna.exe
-    CRIAR_MAPA = if not exist mapa mkdir mapa
-    LIMPAR = if exist caverna.exe del caverna.exe
-else
-    EXECUTAVEL = caverna
-    RODAR = ./caverna
-    CRIAR_MAPA = mkdir -p mapa
-    LIMPAR = rm -f caverna
+	EXEC := $(EXEC).exe
 endif
 
-FONTES = main.c Codigos-fonte/caverna.c Codigos-fonte/pd.c Codigos-fonte/gerador.c Codigos-fonte/visual.c
+#unico ponto que depende do shell: a limpeza
+ifeq ($(findstring sh,$(SHELL)),sh)
+	LIMPAR = rm -f obj/*.o bin/*
+else
+	LIMPAR = del /Q obj\*.o bin\*.exe
+endif
 
-$(EXECUTAVEL): $(FONTES) Headers/caverna.h Headers/pd.h Headers/gerador.h Headers/visual.h
-	gcc -Wall -IHeaders $(FONTES) -o $(EXECUTAVEL)
+all: $(EXEC)
 
-# Compila e executa (o arquivo da caverna e digitado com o programa rodando)
-run: $(EXECUTAVEL)
-	@$(CRIAR_MAPA)
-	@$(RODAR)
+#compila o main e linka com todos os objetos
+$(EXEC): $(OBJETOS) $(TP)/main.c | $(BIN)
+	$(CC) $(TP)/main.c $(OBJETOS) $(HEADER) -o $(EXEC) -lm
+
+#cada .c vira um .o (as pastas sao criadas antes, se nao existirem)
+$(OBJ)/%.o: $(SRC)/%.c | $(OBJ)
+	$(CC) -c $< $(HEADER) -o $@
+
+#o make so executa estas regras se a pasta nao existir
+$(OBJ) $(BIN):
+	mkdir $@
+
+run:
+	$(EXEC)
 
 clean:
 	$(LIMPAR)
 
-all: $(EXECUTAVEL)
+.PHONY: all executar limpar
