@@ -10,8 +10,8 @@
 #define MAX_POCAO 20
 
 // chance de cada celula (o resto eh pocao, 25%)
-#define CHANCE_VAZIA 35
-#define CHANCE_MONSTRO 40
+#define CHANCE_VAZIA 50
+#define CHANCE_MONSTRO 25
 
 int gerarMapa(int linhas, int colunas, int hpInicial, int percParedes, char *nomeArquivo, unsigned int semente){
     char caminho[200];
